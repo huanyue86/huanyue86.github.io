@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 页面未找到</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f3460, #16213e, #007bff);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            padding: 40px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 120px;
+            margin: 0;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            margin: 10px 0 30px 0;
+            font-weight: 300;
+        }
+
+        .joke-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <div class="subtitle">huanyue86.github.io</div>
+        <div class="joke-box" id="joke"></div>
+    </div>
+
+    <script>
+        const jokes = [
+            "小企鹅问妈妈自己是不是亲生的，妈妈说当然是。小企鹅又去问爸爸，爸爸说也是。小企鹅哭着说：那为什么我还是觉得这么冷啊！",
+            "一根火柴觉得头很痒，就伸手挠了挠，结果一不小心把自己给点着了。它被送进医院包扎好出来，你猜怎么着？它变成了一根棉签！",
+            "有一天，0在街上遇到了8，0忍不住对8说：胖就胖呗，大热天的还系什么腰带啊！8听了非常生气，转身就走了。",
+            "一块三分熟的牛排在街上走着，突然看见一块五分熟的牛排，可它们却没有打招呼。你猜为什么？因为它们都不熟呀！",
+            "小番茄走在路上，走着走着不小心摔了一跤，结果你猜怎么着？它变成了番茄酱！旁边的土豆看到了，笑得直接变成了薯条。",
+            "有一天，包子走在路上觉得肚子饿了，于是就把自己给吃了。第二天，面条在街上走，看到包子，面条说：你以为你脱了衣服我就不认识你了吗？",
+            "一只北极熊觉得很无聊，于是它就开始拔自己的毛玩。拔着拔着，毛拔光了，它突然打了个冷颤说：好冷啊！",
+            "小明问妈妈：为什么我的名字叫小明？妈妈说：因为你出生那天，天刚刚亮，小小的光明照进了病房。小明说：那我弟弟叫小黑，是因为晚上生的吗？",
+            "有一天，绿豆从五楼跳了下来，流了很多血，你猜它变成了什么？它变成了红豆！后来它为了止血，贴了一个创可贴，又变成了什么？变成了黑豆！",
+            "小蛇问妈妈：妈妈妈妈，我们是不是有毒啊？妈妈说：是啊，我们是毒蛇。小蛇又问：那我们是不是很危险啊？妈妈说：对呀，怎么突然问这个？小蛇说：因为我刚刚不小心咬到自己的舌头了。",
+            "两只番茄过马路，一辆汽车飞驰而过，其中一只番茄被压扁了。另一只番茄指着它大笑说：哈哈哈，番茄酱！",
+            "有一天，白气球打了黑气球一拳，黑气球非常生气，于是它决定告白。",
+            "一根筷子很难被折断，那是因为它太细了。一把筷子很容易被折断，那是因为它们太散了。所以我们要团结，不然连筷子都当不好。"
+        ];
+
+        // 随机抽取一个笑话并显示
+        const randomIndex = Math.floor(Math.random() * jokes.length);
+        document.getElementById('joke').innerText = jokes[randomIndex];
+    </script>
+</body>
+</html>
