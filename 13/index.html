@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>我梦寐的乐章 在出发的地方</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f4f6fa;
+            padding-top: 70px;
+            padding-bottom: 60px;
+            min-height: 100vh;
+            font-family: -apple-system, Arial, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 72px;
+            background: #1e2b3c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            padding: 0 20px;
+        }
+        .top-content {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .next-addr {
+            font-size: 31px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .next-timer {
+            margin-left: 11px;
+            font-size: 31px;
+            font-weight: 500;
+            line-height: 1;
+            color: white;
+        }
+        /* 上课中黄色 */
+        .teaching-now {
+            color: #ffeb3b;
+            font-weight: 700;
+    
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            margin-left: 0;
+        }
+        /* 倒计时4分钟以内橙色 */
+        .timer-warning {
+            color: #ff9800 !important;
+        }
+        .japanese-highlight {
+            color: #f472b6;
+            font-weight: 600;
+        }
+        .pink-text {
+            color: #f9a8d4;
+        }
+        .timetable-container {
+            max-width: 1300px;
+            width: 95%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            padding: 20px 12px 16px 12px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 500px;
+        }
+        th {
+            background: #eef2f7;
+            padding: 14px 5px;
+            font-weight: 600;
+            color: #1e2b3c;
+            font-size: 1rem;
+            border: 1px solid #d0d9e4;
+            text-align: center;
+        }
+        td {
+            border: 1px solid #d0d9e4;
+            padding: 12px 6px;
+            vertical-align: top;
+            height: 100px;
+            background-color: white;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+        .course-name {
+            font-weight: 600;
+            color: #0b1c2e;
+            margin-bottom: 4px;
+            font-size: 0.96rem;
+        }
+        .course-addr {
+            color: #2c3e50;
+            font-size: 0.86rem;
+            line-height: 1.3;
+        }
+        .empty-cell {
+            color: #a7b8c9;
+            font-style: italic;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .japanese-cell .course-name,
+        .japanese-cell .course-addr {
+            color: #c2418f !important;
+        }
+        .footer-datetime {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #1e2b3c;
+            color: #e3eaf1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            border-top: 2px solid #3a4c5e;
+            z-index: 999;
+        }
+        @media (max-width: 600px) {
+            .top-bar {
+
+                height: 63px;
+            }
+
+            td {
+                padding: 8px 4px;
+                height: auto;
+                min-height: 80px;
+            }
+            .course-name {
+                font-size: 0.85rem;
+            }
+            .course-addr {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-content" id="topContent">
+            <span class="next-addr" id="nextAddr">加载中...</span>
+            <span class="next-timer" id="nextTimer">--:--</span>
+        </div>
+    </div>
+
+    <div class="timetable-container">
+        <table id="mainTimetable">
+            <thead>
+                <tr>
+                    <th>周一</th>
+                    <th>周二</th>
+                    <th>周三</th>
+                    <th>周四</th>
+                    <th>周五</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="footer-datetime" id="footerDate"></div>
+
+    <script>
+        (function() {
+            // ---------- 课表数据 ----------
+            const rawDays = [
+                ["JAVA 网络实训室", "JAVA 网络实训室", "Ps 实训楼502", "Ps 实训楼502", ""],
+                ["网页设计 实训楼608", "英语 2教406", "思政 A101", "体育 体育课", ""],
+                ["网络基础 2教108", "艺术鉴赏 2教106", "日语 3教410", "日语 3教410", "网页设计 2教6机房"],
+                ["英语 2教406", "C语言 实训楼502", "JAVA 2教4机房", "思政 A101", ""],
+                ["", "思政 A101", "网络基础 2教108", "", ""],
+                ["", "", "劳动教育 3教201", "", ""]
+            ];
+
+            // 解析单元格，完全移除周次相关代码 (仅保留课程名和地址)
+            function parseCourse(cellStr) {
+                if (!cellStr || cellStr.trim() === "") return { isEmpty: true };
+                const parts = cellStr.trim().split(/\s+/);
+                let name, addr;
+                if (parts.length >= 2) {
+                    name = parts[0];
+                    addr = parts[1];
+                } else {
+                    name = parts[0];
+                    addr = "?";
+                }
+                const isJapanese = (name === '日语');
+                return { name, addr, isJapanese, isEmpty: false };
+            }
+
+            // 课程矩阵 [6][5]
+            const courseMatrix = rawDays.map(dayArr => dayArr.map(cell => parseCourse(cell)));
+
+            // 各节次时间表 (每节1小时40分)
+            const periodTimes = [
+                { start: [8, 0], end: [9, 40] },
+                { start: [10, 0], end: [11, 40] },
+                { start: [13, 20], end: [15, 0] },
+                { start: [15, 10], end: [16, 50] },
+                { start: [17, 0], end: [18, 30] }
+            ];
+
+            // 根据基准日期和节次获取上课/下课时间
+            function getPeriodDateTime(baseDate, periodIndex, type = 'start') {
+                const d = new Date(baseDate);
+                const [h, m] = type === 'start' ? periodTimes[periodIndex].start : periodTimes[periodIndex].end;
+                d.setHours(h, m, 0, 0);
+                return d;
+            }
+
+            // 特殊课程：3教201，2026/3/28 13:20~15:00
+            const specialCourse = {
+                name: '特殊课',
+                addr: '3教201',
+                start: new Date(2026, 2, 28, 13, 20, 0),
+                end: new Date(2026, 2, 28, 15, 0, 0),
+                isSpecial: true
+            };
+
+            // 判断此刻是否有课（正常课或特殊课）
+            function getCurrentCourse(now) {
+                // 检查特殊课程
+                if (now >= specialCourse.start && now <= specialCourse.end) {
+                    return specialCourse;
+                }
+
+                // 检查正常课程（周一至周五）
+                const todayWeekday = now.getDay(); // 0周日,1周一...6周六
+                if (todayWeekday >= 1 && todayWeekday <= 5) {
+                    const dayIndex = todayWeekday - 1; // 周一0 ~ 周五4
+                    for (let p = 0; p < 5; p++) {
+                        const course = courseMatrix[dayIndex][p];
+                        if (!course.isEmpty) {
+                            const start = getPeriodDateTime(now, p, 'start');
+                            const end = getPeriodDateTime(now, p, 'end');
+                            if (now >= start && now <= end) {
+                                return course;
+                            }
+                        }
+                    }
+                }
+                return null; // 没课
+            }
+
+            // 获取下一节课（从当前时刻往后找最近的一节）
+            function getNextCourse(now) {
+                let earliest = null;
+                let earliestStart = null;
+
+                // 特殊课程（如果将来）
+                if (now < specialCourse.start) {
+                    earliest = specialCourse;
+                    earliestStart = specialCourse.start;
+                }
+
+                // 遍历未来7天的正常课程
+                for (let offset = 0; offset <= 7; offset++) {
+                    const targetDate = new Date(now);
+                    targetDate.setDate(now.getDate() + offset);
+                    const targetWeekday = targetDate.getDay();
+                    if (targetWeekday < 1 || targetWeekday > 5) continue; // 只考虑周一~周五
+                    const dayIndex = targetWeekday - 1;
+
+                    for (let p = 0; p < 5; p++) {
+                        const course = courseMatrix[dayIndex][p];
+                        if (course.isEmpty) continue;
+
+                        const startTime = getPeriodDateTime(targetDate, p, 'start');
+                        // 如果是今天且已经开始，跳过
+                        if (offset === 0 && startTime <= now) continue;
+
+                        if (!earliestStart || startTime < earliestStart) {
+                            earliestStart = startTime;
+                            earliest = course;
+                        }
+                    }
+                }
+
+                if (earliest && earliestStart) {
+                    const diffMs = earliestStart - now;
+                    const totalSec = Math.floor(diffMs / 1000);
+                    const mins = Math.floor(totalSec / 60);
+                    const secs = totalSec % 60;
+                    const mmss = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    return {
+                        course: earliest,
+                        countdown: mmss,
+                        startTime: earliestStart,
+                        diffSec: totalSec
+                    };
+                }
+                return null; // 无未来课程
+            }
+
+            // 刷新顶栏和底部
+            function refreshTopAndFooter() {
+                const now = new Date();
+                updateFooter(now);
+
+                const currentCourse = getCurrentCourse(now);
+                const topAddr = document.getElementById('nextAddr');
+                const topTimer = document.getElementById('nextTimer');
+
+                // 重置样式
+                topTimer.classList.remove('timer-warning', 'japanese-highlight');
+
+                if (currentCourse) {
+                    // 上课中：地址 + 黄色“上课中”
+                    let addrHtml = currentCourse.addr;
+                    if (currentCourse.isJapanese) {
+                        addrHtml = `<span class="japanese-highlight">${addrHtml}</span>`;
+                    }
+                    topAddr.innerHTML = addrHtml;
+                    topTimer.innerHTML = '<span class="teaching-now">上课中</span>';
+                } else {
+                    // 没课：显示下一节课倒计时
+                    const next = getNextCourse(now);
+                    if (next) {
+                        let addrHtml = next.course.addr;
+                        if (next.course.isJapanese) {
+                            addrHtml = `<span class="japanese-highlight">${addrHtml}</span>`;
+                        }
+                        topAddr.innerHTML = addrHtml;
+                        topTimer.innerHTML = next.countdown;
+
+                        // 剩余4分 -> 橙色
+                        if (next.diffSec > 0 && next.diffSec <= 240) {
+                            topTimer.classList.add('timer-warning');
+                        }
+                        // 日高亮（变粉）
+                        if (next.course.isJapanese) {
+                            topTimer.classList.add('japanese-highlight');
+                        }
+                    } else {
+                        // 完全无课
+                        topAddr.innerHTML = '无课';
+                        topTimer.innerHTML = '--:--';
+                    }
+                }
+                // 课表渲染（不含周次）
+                renderTable(now);
+            }
+
+            // 底部时间更新
+            function updateFooter(now) {
+                const y = now.getFullYear();
+                const m = now.getMonth() + 1;
+                const d = now.getDate();
+                const hh = now.getHours().toString().padStart(2, '0');
+                const mm = now.getMinutes().toString().padStart(2, '0');
+                document.getElementById('footerDate').innerText = `${y}/${m}/${d} ${hh}:${mm}`;
+            }
+
+            // 绘制
+            function renderTable(now) {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+                for (let period = 0; period < 5; period++) {
+                    const tr = document.createElement('tr');
+                    for (let day = 0; day < 5; day++) {
+                        const course = courseMatrix[day][period];
+                        const td = document.createElement('td');
+                        if (!course.isEmpty) {
+                            const nameDiv = document.createElement('div');
+                            nameDiv.className = 'course-name';
+                            nameDiv.innerText = course.name;
+                            const addrDiv = document.createElement('div');
+                            addrDiv.className = 'course-addr';
+                            addrDiv.innerText = course.addr;
+                            td.appendChild(nameDiv);
+                            td.appendChild(addrDiv);
+                            if (course.isJapanese) td.classList.add('japanese-cell');
+                        } else {
+                            td.className = 'empty-cell';
+                            td.innerText = '——';
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                }
+            }
+
+            // 启动
+            renderTable(new Date());
+            refreshTopAndFooter();
+            setInterval(refreshTopAndFooter, 500);
+        })();
+    </script>
+</body>
+</html>
