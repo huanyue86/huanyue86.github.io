@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>禾眸</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+<style>
+:root{
+    /* 主色调保持不变 */
+    --bg:#FCFCFC;
+    --surface:#FFFFFF;
+    --surface-low:#F7F7F7;
+    --surface-variant:#E8F5E8;
+    --on-surface:#1C1B1F;
+    --primary:#2E7D32; /* 鲜绿色主色 */
+    --primary-container:#E2FAC8;
+    --on-primary:#FFFFFF;
+    --outline:#6B8E6F;
+    --error:#BA1A1A;
+    --warning:#C62828;
+    --warning-container:#FFDAD6;
+    --caution:#EF6C00;
+    --text-secondary:#5F6C53;
+    --info:#2196F3;
+}
+
+/* 增强 Material You 风格 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: default;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--on-surface);
+    transition: background-color 0.3s ease;
+    padding-top: 2px; /* 为固定顶栏留出空间 */
+    padding-bottom: 60px; /* 底栏高度预留 */
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    cursor: default;
+}
+
+/* --- 修改 Header：始终悬浮在最上方 --- */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--surface);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000; /* 置于最顶层 */
+    height: 60px;
+}
+
+.location-time {
+    font-size: 0.9rem;
+}
+
+.location-time small {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.container {
+    /* --- 调整上边距防止被顶栏盖住 --- */
+    padding: 80px 16px 80px 16px; 
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 100vw;
+}
+
+/* 增强 Card 样式 */
+.card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: 0.2s ease;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.refresh {
+    color: var(--primary);
+    font-size: 18px;
+    cursor: default;
+}
+
+.scan-frame {
+    height: 200px;
+    background: #f0f0f0;
+    border: 2px dashed #6B8E6F;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.scan-overlay {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #6B8E6F;
+    font-size: 0.9rem;
+}
+
+.result-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface-low);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 8px 0;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 16px;
+}
+
+.status-item {
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--surface-low);
+    flex: 1;
+    margin: 0 4px;
+}
+
+.status-item h3 {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.alert-item {
+    display: flex;
+    padding: 12px 0;
+}
+
+.alert-icon {
+    font-size: 24px;
+    margin-right: 12px;
+}
+
+.alert-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.alert-content h4 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.alert-content p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.alert-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.tag {
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tag-red {
+    background: var(--warning-container);
+    color: var(--warning);
+}
+
+.tag-yellow {
+    background: #FFF9C4;
+    color: #FBC02D;
+}
+
+.tag-green {
+    background: #E8F5E8;
+    color: var(--primary);
+}
+
+.tag-blue {
+    background: #E3F2FD;
+    color: var(--info);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 1rem;
+    margin-top: 12px;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-outline {
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+}
+
+.farm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.farm-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--outline);
+}
+
+.farm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- 修改底部导航栏：全屏无间隙 --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--surface);
+    display: flex;
+    /* 移除 gap，改为直接平分 */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* --- 底栏按钮：无边距，固定尺寸，防错位 --- */
+.nav-btn {
+    /* 移除内外边距，防止出现缝隙 */
+    margin: 0 !important;
+    padding: 0 !important;
+    /* 强制每个按钮占据 20% 宽度 */
+    width: 20%;
+    height: 100%;
+    /* 恢复内部布局 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    /* 移除圆角，改为块状 */
+    border-radius: 0;
+    /* 移除默认变换，防止活跃时错位 */
+    transform: none !important;
+    transition: all 0.2s ease;
+    /* 增加内边距保持图标文字间距 */
+    padding-top: 8px !important;
+padding-bottom: 5px !important;
+}
+
+.nav-btn span {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+/* --- 修改活跃按钮：仅改变颜色，不改变大小 --- */
+.nav-btn.active {
+    background-color: var(--primary) !important;
+    color: white !important;
+    /* 保持宽度一致，不进行缩放 */
+}
+
+/* 新增样式保持不变... */
+.team-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--surface-low);
+}
+
+.team-info {
+    flex: 1;
+}
+
+.team-name {
+    font-weight: 500;
+}
+
+.team-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 8px;
+}
+
+.pesticide-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pesticide-item {
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--surface-low);
+}
+
+.pesticide-name {
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.pesticide-dose {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.community-post {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--surface-low);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.post-author {
+    font-weight: 500;
+}
+
+.post-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.post-content {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.post-actions {
+    display: flex;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.chart-placeholder {
+    height: 200px;
+    background: linear-gradient(to right, #e0f7fa, #f3e5f5);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px 0;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.device-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--surface-low);
+}
+
+.device-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warning);
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.zar1 {
+    border: 2px solid #00000000;
+}
+
+.zar1:hover {
+    border: 2px solid #000002ff
+}
+#xfxfxfxf{position: fixed;right: 16px;top: -16px;z-index: 2147483645;}
+</style>
+</head>
+<body><img src="155.png" width="71" id="xfxfxfxf">
+
+<!-- --- 修改 Header：移除了右侧的深色模式按钮 --- -->
+<header class="header">
+    <div class="location-time">
+        <div>辽宁省 · 辽阳市 · 智慧植保</div>
+        <small>2026年05月20日 星期三 | 晴 24℃ | 湿度 58%</small>
+    </div>
+    <!-- 右侧按钮已删除，仅保留左侧信息 -->
+</header>
+
+<div class="container" id="pageContent"></div>
+
+<!-- --- 修改底部导航栏：移除了深色模式逻辑，应用新样式 --- -->
+<nav class="bottom-nav">
+    <a href="#" class="nav-btn active" data-page="home"><span class="material-symbols-outlined">map</span><span>地图</span></a>
+    <a href="#" class="nav-btn" data-page="farms"><span class="material-symbols-outlined">agriculture</span><span>稻田</span></a>
+    <a href="#" class="nav-btn" data-page="camera"><span class="material-symbols-outlined">pest_control</span><span>识别</span></a>
+    <a href="#" class="nav-btn" data-page="service"><span class="material-symbols-outlined">drone</span><span>飞防</span></a>
+    <a href="#" class="nav-btn" data-page="profile"><span class="material-symbols-outlined">person</span><span>我的</span></a>
+</nav>
+
+<script>
+// 模拟增强后的数据 (保持不变)
+const appData = {
+    alerts: 2,
+    farms: [
+        {id:1,name:"南地块",area:"50亩",risk:"high",pests:320,lossEstimate:"120斤/亩", trend:"up", history: [10, 30, 150, 320, 280, 100, 20]},
+        {id:2,name:"北地块",area:"80亩",risk:"medium",pests:45,lossEstimate:"20斤/亩", trend:"stable", history: [5, 10, 20, 45, 60, 30, 10]}
+    ],
+    devices: [
+        {id:1,name:"首山镇1号田",status:"online",battery:85,type:"智能测报灯",lastSync:"1分钟前"},
+        {id:2,name:"柳河子监测点",status:"online",battery:92,type:"环境传感器",lastSync:"3分钟前"}
+    ],
+    teams: [
+        {id:1,name:"辽阳先锋飞防队",rating:4.9,price:5.5,served:1200,review:"好评率98%", contact:"138xxxx1234"},
+        {id:2,name:"灯塔无人机合作社",rating:4.7,price:6.0,served:800,review:"好评率95%", contact:"139xxxx5678"}
+    ],
+    pesticides: [
+        {name: "吡蚜酮", type: "内吸性杀虫剂", usage: "25%吡蚜酮悬浮剂20-30毫升/亩", note: "对褐飞虱特效，持效期长"},
+        {name: "烯啶虫胺", type: "烟碱类杀虫剂", usage: "10%烯啶虫胺水剂30-40毫升/亩", note: "速效性好，适合爆发期"},
+        {name: "短稳杆菌", type: "生物农药", usage: "100亿孢子/毫升 可湿性粉剂 60-80毫升/亩", note: "绿色环保，不伤天敌"}
+    ],
+    community: [
+        {author: "灯塔老张", time: "2小时前", content: "今年辽阳这天气，稻飞虱来得比往年早啊，大家打药了吗？", likes: 12},
+        {author: "植保专家王工", time: "1小时前", content: "【专家建议】近期气温回升快，建议优先使用吡蚜酮+烯啶虫胺复配，效果更好。", likes: 45, verified: true}
+    ]
+};
+
+// --- 修改初始化逻辑：移除了深色模式相关代码 ---
+window.addEventListener('load', ()=>{
+    // 直接加载主页
+    navigate('home');
+});
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+        e.preventDefault();
+        const page = btn.getAttribute('data-page');
+        navigate(page);
+    });
+});
+
+function navigate(page){
+    // 移除所有 active
+    document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
+    // 为当前按钮添加 active
+    const activeBtn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+    if(activeBtn) activeBtn.classList.add('active');
+    
+    let content = '';
+    switch(page){
+        case 'home': content = renderHome(); break;
+        case 'farms': content = renderFarms(); break;
+        case 'camera': content = renderCamera(); break;
+        case 'service': content = renderService(); break;
+        case 'profile': content = renderProfile(); break;
+        default: content = renderHome();
+    }
+    document.getElementById('pageContent').innerHTML = content;
+}
+
+// --- 页面渲染函数保持不变 ---
+function renderHome(){
+    return ` 
+    <div class="card">
+        <div class="card-title"><span>🌾 田间概览</span></div>
+        <div class="status-bar">
+            <div class="status-item"><h3 style="color:var(--primary);">${appData.devices.length}</h3><div>监测设备</div></div>
+            <div class="status-item"><h3 style="color:var(--warning);">${appData.alerts}</h3><div>高危预警</div></div>
+            <div class="status-item"><h3>24℃</h3><div>当前气温</div></div>
+        </div>
+    </div>
+    <div class="card" style="position: relative;">
+        <div class="card-title"><span>🗺️ 虫情热力图</span></div>
+        <!--<div class="heatmap-legend">
+            <div class="legend-item"><div class="legend-color" style="background:#d32f2f;"></div><span>🔴 高危</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#ffca28;"></div><span>🟡 中等</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#66bb6a;"></div><span>🟢 安全</span></div>
+        </div>-->
+        <div class="map-placeholder" style="height: 240px; background: linear-gradient(135deg, #e0f7fa 0%, #fff3e0 100%); border-radius: 12px; position: relative; overflow: hidden;">
+            <div style="position: absolute; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, rgba(211,47,47,0.4) 0%, transparent 70%); bottom: 20px; left: 20px; animation: pulse 3s infinite;"></div>
+            <div style="position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,193,7,0.3) 0%, transparent 70%); top: 40px; right: 40px;"></div>
+            <div style="position: absolute; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(102,187,106,0.3) 0%, transparent 70%); top: 20px; left: 50%; transform: translateX(-50%);"></div>
+            <div style="color: #fff; text-align: center; position: absolute; bottom: 10px; width: 100%;">📍 辽阳市水稻种植区实时热力</div>
+        </div>
+        <div style="text-align:center; margin-top: 8px; font-size: 0.8rem;"> 
+            <small>🔴 高危 | 🟡 中等 | 🟢 安全</small>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title"><span>🚨 今日预警</span></div>
+        <div class="alert-item">
+            <span class="material-symbols-outlined alert-icon" style="color: var(--warning);">pest_control</span>
+            <div class="alert-content">
+                <h4>[褐飞虱] 南地块 · 50亩 (虫量: 320头)</h4>
+                <p>风险等级：高危 | 建议立即启动应急防治预案</p>
+            </div>
+            <span class="alert-time">刚刚</span>
+        </div>
+        <button class="btn-primary" onclick="speakAlert()"><span class="material-symbols-outlined">volume_up</span>语音播报</button>
+    </div>`;
+} 
+
+// 2
+function renderFarms(){
+    return ` 
+    <div class="card">
+        <div class="card-title"><span>📋 我的稻田</span></div>
+        <div class="farm-list"> 
+            ${appData.farms.map(farm=>`
+            <div class="farm-card">
+                <div class="farm-header">
+                    <div>
+                        <h4>${farm.name} (${farm.area})</h4>
+                        <small>当前虫量: <strong>${farm.pests}</strong> 头 | 历史峰值: 320头</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="tag ${farm.risk==='high'?'tag-red':farm.risk==='medium'?'tag-yellow':'tag-green'}"> 
+                            ${farm.risk==='high'?'🔴 高风险':farm.risk==='medium'?'🟡 需观察':'🟢 安全'} 
+                        </span>
+                        <br>
+                        <small>损失估算: ${farm.lossEstimate}</small>
+                    </div>
+                </div>
+                <!-- 模拟虫情趋势曲线 -->
+                <div style="height: 60px; background: linear-gradient(to right, #e8f5e9 0%, #ffebee 100%); border-radius: 8px; margin-top: 8px; position: relative; overflow: hidden;">
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 5px;">
+                        ${farm.history.map(val => `<div style="width: 10%; background: ${val > 100 ? '#d32f2f' : '#4caf50'}; height: ${val/3.5}%; border-radius: 2px 2px 0 0;"></div>`).join('')}
+                    </div>
+                    <small style="position: absolute; top: 2px; left: 5px; color: var(--text-secondary);">近7天虫情曲线</small>
+                </div>
+            </div>
+            `).join('')}
+        </div> 
+        <button class="btn-primary" style="margin-top: 16px;"><span class="material-symbols-outlined">add</span>添加新地块档案</button>
+    </div>`;
+} 
+
+// 3. 虫脸识别 (深度版)
+function renderCamera(){
+    return ` 
+    <div class="card">
+        <div class="card-title"><span>📸 智能识虫</span><span class="refresh">离线模型已加载</span></div>
+        <div class="scan-frame" style="background-image: url(229.png);background-size:  cover;">
+            <!-- <span class="material-symbols-outlined" style="font-size: 64px; color: var(--primary);">camera_alt</span>
+           <p style="margin-top: 10px; color: var(--text-secondary);">点击拍摄或上传照片</p>
+            <div class="scan-overlay">支持褐飞虱、二化螟、稻纵卷叶螟识别</div>-->
+        </div>
+        <div class="result-card">
+            <h4>识别结果示例</h4>
+            <div style="display:flex; align-items:center; gap:10px; margin: 10px 0;">
+                <span class="tag tag-red">褐飞虱 (98.5%)</span>
+                <small>若虫期 | 密度：高</small>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: left;"> 
+                <strong>防治建议：</strong> 当前处于爆发初期，建议立即使用吡蚜酮或烯啶虫胺进行喷雾防治。 
+            </p>
+        </div>
+        <button class="btn-primary"><span class="material-symbols-outlined">photo_camera</span>点击拍照识别</button>
+    </div>`;
+} 
+
+// 4. 飞防服务 (深度版)
+function renderService(){
+    return ` 
+    <div class="card">
+        <div class="card-title"><span>🚁 飞防服务</span></div>
+        <div style="background: var(--primary-container); padding: 12px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="color: var(--primary);">location_on</span>
+            <div>
+                <div style="font-weight: 500;">当前位置：辽阳市灯塔区</div>
+                <small>已为您匹配周边 <strong>3</strong> 支飞防队</small>
+            </div>
+        </div>
+        ${appData.teams.map(team => ` 
+        <div class="team-card">
+            <div class="team-info">
+                <div class="team-name">${team.name} <span style="color:#FFD700;">★${team.rating}</span></div>
+                <div class="team-meta"> 
+                    <span>服务面积: ${team.served}亩</span> 
+                    <span>价格: ¥${team.price}/亩</span> 
+                </div>
+                <small style="color: var(--primary);">${team.review}</small>
+            </div>
+            <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem;">呼叫</button>
+        </div>
+        `).join('')}
+        <button class="btn-primary" style="margin-top: 16px;">发布统防统治需求</button>
+    </div>`;
+} 
+
+// 5. 农药推荐 & 6. 年度报告 & 7. 社区 & 8. 个人中心 (深度版)
+function renderProfile(){
+    return ` 
+    <!-- 5. 农药推荐模块 -->
+    <div class="card">
+        <div class="card-title"><span>💊 合规用药推荐</span><span class="tag tag-blue">扫码自查</span></div>
+        <div class="pesticide-card"> 
+            ${appData.pesticides.map(p => ` 
+            <div class="pesticide-item">
+                <div class="pesticide-name">${p.name} <small style="color:var(--text-secondary); font-weight:normal;">(${p.type})</small></div>
+                <div class="pesticide-dose">用量：${p.usage}</div>
+                <div style="font-size: 0.8rem; color: var(--caution); margin-top: 4px;">💡 ${p.note}</div>
+            </div>
+            `).join('')}
+        </div> 
+    </div>
+
+    <!-- 6 -->
+    <div class="card">
+        <div class="card-title"><span>📊 年度增收报告</span></div>
+        <div class="chart-placeholder"> 
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; color: var(--primary);">+12.5%</div>
+                <div>预计增收比例</div>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+            <div>去年药费：<span style="color: var(--text-secondary);">¥4500</span></div>
+            <div>今年药费：<span style="color: var(--primary); font-weight: bold;">¥3800</span></div>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px;">通过精准测报，今年减少盲目打药 2 次。</p>
+    </div>
+
+    <!-- 7 -->
+    <div class="card">
+        <div class="card-title"><span>💬 农户互助圈</span><span class="refresh">专家在线</span></div>
+        ${appData.community.map(post => ` 
+        <div class="community-post">
+            <div class="post-header">
+                <span class="post-author">${post.author} ${post.verified ? '<span class="tag tag-blue">专家</span>' : ''}</span>
+                <span class="post-time">${post.time}</span>
+            </div>
+            <div class="post-content">${post.content}</div>
+            <div class="post-actions"> 
+                <span>👍 ${post.likes}</span> 
+                <span>💬 评论</span> 
+            </div>
+        </div>
+        `).join('')}
+        <button class="btn-outline" style="width: 100%; margin-top: 12px;">进入社区提问</button>
+    </div>
+
+    <!-- 8. 个人中心统一管理 -->
+    <div class="card">
+        <div class="card-title"><span>⚙️ 统一管理中心</span></div>
+        <div class="device-list"> 
+            ${appData.devices.map(dev => ` 
+            <div class="device-item" style="background-color: #ddffdf;padding: 10px;margin-bottom: 5px;border-radius: 8px;">
+                <div> 
+                    <div style="font-weight: 500;">${dev.name}</div> 
+                    <small style="color: var(--text-secondary);">${dev.type} | 最后同步: ${dev.lastSync}</small> 
+                </div>
+                <div class="device-status"> 
+                    <span class="status-dot"></span> 
+                    <span>电量 ${dev.battery}%</span> 
+                </div>
+            </div>
+            `).join('')}
+        </div> 
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div class="zar1" style="padding: 12px; background: var(--surface-low); border-radius: 8px; display: flex; justify-content: space-between;">
+                <span>历史记录查询</span>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </div>
+            <div class="zar1" style="padding: 12px; background: var(--surface-low); border-radius: 8px; display: flex; justify-content: space-between;">
+                <span>联系客服支持</span>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </div>
+        </div>
+    </div>`;
+} 
+
+// 语
+function speakAlert() { 
+    const text = "注意，南地块发现褐飞虱高危预警，当前虫量320头，建议立即防治。";
+    const utterance = new SpeechSynthesisUtterance(text); 
+    utterance.lang = 'zh-CN'; 
+    window.speechSynthesis.speak(utterance); 
+} 
+</script> 
+
+</body> 
+</html>
