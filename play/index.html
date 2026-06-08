@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-size: 16px;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        #planeIntro {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 220px;
+            background-color: rgba(20, 20, 40, 0.85);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            #planeIntro {
+                display: none;
+            }
+        }
+        
+        #planeIntro h2 {
+            color: #4af;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        
+        #planeIntro p {
+            line-height: 1.5;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            color: #ccc;
+        }
+        
+        .attack-stage {
+            margin-top: 12px;
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+        }
+        
+        .stage-title {
+            color: #ff4;
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .stage-desc {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        #gameContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            min-width: 160px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            #ui {
+                top: 5px;
+                right: 5px;
+                min-width: 140px;
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #ui {
+                min-width: 120px;
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        #ui h2 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #4af;
+            text-align: center;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .stat-label {
+            color: #aaa;
+        }
+        
+        .stat-value {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        /* 移除攻击阶段显示行 */
+        .stat-row.attack-stage {
+            display: none;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        #gameOver h2 {
+            font-size: 3rem;
+            color: #f44;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #gameOver p {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        #restartBtn {
+            background-color: #4af;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #restartBtn:hover, #restartBtn:active {
+            background-color: #28d;
+        }
+        
+        /* 移动端操作按钮 */
+        #mobileControls {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            display: none;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: block;
+            }
+        }
+        
+        #directionPad {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 200px;
+            height: 200px;
+            pointer-events: auto;
+        }
+        
+        .direction-btn {
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        .direction-btn:active {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        #btnUp {
+            top: 0;
+            left: 67px;
+        }
+        
+        #btnLeft {
+            top: 67px;
+            left: 0;
+        }
+        
+        #btnRight {
+            top: 67px;
+            right: 0;
+        }
+        
+        #btnDown {
+            bottom: 0;
+            left: 67px;
+        }
+        
+        #fireButton {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 68, 68, 0.7);
+            border: 4px solid rgba(255, 100, 100, 0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            pointer-events: auto;
+        }
+        
+        #fireButton:active {
+            background-color: rgba(255, 100, 100, 0.9);
+        }
+        
+        /* 攻击阶段提示（在战机上方显示） */
+        #attackStageIndicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .stage-1 {
+            color: #f44;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.7);
+        }
+        
+        .stage-2 {
+            color: #44f;
+            text-shadow: 0 0 10px rgba(68, 68, 255, 0.7);
+        }
+        
+        .stage-3 {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div id="planeIntro">
+        <h2>神翼战机</h2>
+        <p>这是银河系最先进的太空战机，搭载独特的三段式普攻系统。第一段攻击发射红蓝追踪弹，第二段攻击蓝红组合，第三段发射威力巨大的白色真实伤害弹。</p>
+        <div class="attack-stage">
+            <div class="stage-title">第一段：红蓝追踪弹</div>
+            <div class="stage-desc">左红(物理)右蓝(法术)，机身前方2倍距离内追踪敌人</div>
+        </div>
+        <div class="attack-stage">
+            <div class="stage-title">第二段：蓝红直线弹</div>
+            <div class="stage-desc">左蓝(法术)右红(物理)，直线攻击</div>
+        </div>
+        <div class="attack-stage">
+            <div class="stage-title">第三段：白色真实弹</div>
+            <div class="stage-desc">无视防御的真实伤害，威力巨大</div>
+        </div>
+    </div>
+    
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <h2>战机状态</h2>
+            <div class="stat-row">
+                <span class="stat-label">生命值:</span>
+                <span class="stat-value" id="health">100</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">得分:</span>
+                <span class="stat-value" id="score">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">击坠敌机:</span>
+                <span class="stat-value" id="enemiesDefeated">0</span>
+            </div>
+            <!-- 攻击阶段显示已移除 -->
+        </div>
+        
+        <!-- 攻击阶段提示（屏幕中央） -->
+        <div id="attackStageIndicator"></div>
+        
+        <!-- 移动端操作按钮 -->
+        <div id="mobileControls">
+            <div id="directionPad">
+                <div id="btnUp" class="direction-btn">↑</div>
+                <div id="btnLeft" class="direction-btn">←</div>
+                <div id="btnRight" class="direction-btn">→</div>
+                <div id="btnDown" class="direction-btn">↓</div>
+            </div>
+            <div id="fireButton">⚡</div>
+        </div>
+        
+        <div id="gameOver">
+            <h2>游戏结束</h2>
+            <p>最终得分: <span id="finalScore">0</span></p>
+            <button id="restartBtn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 屏幕尺寸管理
+        let screenWidth = window.innerWidth;
+        let screenHeight = window.innerHeight;
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            screenWidth = window.innerWidth;
+            screenHeight = window.innerHeight;
+            
+            canvas.width = screenWidth;
+            canvas.height = screenHeight;
+            
+            // 重新计算基于屏幕尺寸的参数
+            calculateScreenBasedParams();
+        }
+        
+        // 游戏配置参数
+        const CONFIG = {
+            // 玩家战机参数
+            PLAYER: {
+                BASE_WIDTH: 50,
+                BASE_HEIGHT: 60,
+                SPEED: 4, // 降低移动速度以提高控制精度
+                COLOR: '#4af',
+                INITIAL_HEALTH: 100,
+                INITIAL_SCORE: 0,
+                INITIAL_X_PERCENT: 0.5,
+                INITIAL_Y_PERCENT: 0.85,
+                
+                // 移动控制参数
+                MOVE_DECELERATION: 0.85, // 移动减速系数（值越小减速越快）
+                MIN_MOVE_THRESHOLD: 0.1, // 最小移动阈值
+            },
+            
+            // 攻击系统参数
+            ATTACK: {
+                STAGE_1_INTERVAL: 30,     // 第一段攻击间隔帧数（0.5秒）
+                STAGE_2_INTERVAL: 30,     // 第二段攻击间隔帧数（0.5秒）
+                STAGE_3_COOLDOWN: 90,     // 第三段攻击后冷却帧数（1.5秒）
+                RESET_TIMEOUT: 168,       // 重置到第一段的时间（2.8秒，60fps）
+                BULLET_SPEED: 8,
+                
+                // 攻击阶段提示显示时间
+                STAGE_INDICATOR_DURATION: 30, // 显示30帧（约0.5秒）
+                
+                // 第一段攻击
+                STAGE_1: {
+                    LEFT_COLOR: '#f44',
+                    RIGHT_COLOR: '#44f',
+                    DAMAGE: 16,
+                    MAX_DAMAGE_PER_ENEMY: 32,
+                    TRACKING_RANGE: 2,
+                    TRACKING_ANGLE: 60,
+                    BULLET_SIZE: 8,
+                },
+                
+                // 第二段攻击
+                STAGE_2: {
+                    LEFT_COLOR: '#44f',
+                    RIGHT_COLOR: '#f44',
+                    DAMAGE: 16,
+                    MAX_DAMAGE_PER_ENEMY: 32,
+                    BULLET_SIZE: 8,
+                },
+                
+                // 第三段攻击
+                STAGE_3: {
+                    COLOR: '#fff',
+                    DAMAGE: 30,
+                    BULLET_WIDTH: 12,
+                    BULLET_HEIGHT: 25,
+                }
+            },
+            
+            // 敌机参数
+            ENEMY: {
+                BASE_WIDTH: 50,
+                BASE_HEIGHT: 50,
+                MIN_SPEED: 0.5,
+                MAX_SPEED: 2.0,
+                COLOR: '#ff4',
+                HEALTH: 100,
+                TYPE: 2,
+                
+                SPAWN_RATE: 0.01,
+                MIN_SPAWN_Y: -60,
+                
+                MIN_SHOT_INTERVAL: 100,
+                MAX_SHOT_INTERVAL: 250,
+                BULLET_WIDTH: 8,
+                BULLET_HEIGHT: 15,
+                BULLET_SPEED: 4,
+                BULLET_COLOR: '#f44',
+            },
+            
+            // 碰撞伤害参数
+            DAMAGE: {
+                ENEMY_BULLET_TO_PLAYER: 8,
+                ENEMY_COLLISION_TO_PLAYER: 10,
+                
+                ENEMY_DEFEAT_SCORE: 100,
+                SPECIAL_ENEMY_BONUS: 50,
+            },
+            
+            // 视觉效果参数
+            VISUAL: {
+                DAMAGE_NUMBER_LIFETIME: 40,
+                DAMAGE_NUMBER_SPEED: -1.5,
+                
+                STAR_COUNT: 80,
+                STAR_MAX_SIZE: 3,
+            },
+            
+            // 游戏平衡参数
+            BALANCE: {
+                ENEMY_SPAWN_ADJUST: 1.0,
+                PLAYER_SPEED_ADJUST: 1.0,
+            }
+        };
+        
+        // 屏幕尺寸相关的计算参数
+        let screenBasedParams = {
+            playerWidth: 0,
+            playerHeight: 0,
+            enemyWidth: 0,
+            enemyHeight: 0,
+            bulletScale: 1.0
+        };
+        
+        // 计算基于屏幕尺寸的参数
+        function calculateScreenBasedParams() {
+            const baseWidth = 800;
+            const baseHeight = 600;
+            
+            let scale;
+            if (screenWidth < 500) {
+                scale = Math.min(screenWidth / baseWidth, screenHeight / baseHeight) * 1.2;
+            } else if (screenWidth < 768) {
+                scale = Math.min(screenWidth / baseWidth, screenHeight / baseHeight) * 1.0;
+            } else {
+                scale = Math.min(screenWidth / baseWidth, screenHeight / baseHeight) * 0.8;
+            }
+            
+            scale = Math.max(scale, 0.7);
+            
+            screenBasedParams = {
+                playerWidth: CONFIG.PLAYER.BASE_WIDTH * scale,
+                playerHeight: CONFIG.PLAYER.BASE_HEIGHT * scale,
+                enemyWidth: CONFIG.ENEMY.BASE_WIDTH * scale,
+                enemyHeight: CONFIG.ENEMY.BASE_HEIGHT * scale,
+                bulletScale: scale
+            };
+        }
+        
+        // 游戏状态
+        let gameRunning = true;
+        let score = CONFIG.PLAYER.INITIAL_SCORE;
+        let health = CONFIG.PLAYER.INITIAL_HEALTH;
+        let enemiesDefeated = 0;
+        
+        // 玩家战机
+        const player = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            baseSpeed: CONFIG.PLAYER.SPEED * CONFIG.BALANCE.PLAYER_SPEED_ADJUST,
+            currentSpeedX: 0, // 当前X轴速度
+            currentSpeedY: 0, // 当前Y轴速度
+            color: CONFIG.PLAYER.COLOR,
+            bullets: [],
+            attackStage: 1,
+            attackCooldown: 0,
+            maxCooldown: CONFIG.ATTACK.STAGE_3_COOLDOWN,
+            attackInterval: CONFIG.ATTACK.STAGE_1_INTERVAL,
+            lastAttackTime: 0,
+            lastAttackFrame: 0, // 记录上次攻击的帧数
+            resetTimeout: CONFIG.ATTACK.RESET_TIMEOUT, // 重置到第一段的时间
+            stage1HitEnemies: new Map(),
+            stage2HitEnemies: new Map()
+        };
+        
+        // 攻击阶段提示相关
+        let stageIndicator = {
+            show: false,
+            frameCount: 0,
+            text: '',
+            className: ''
+        };
+        
+        // 敌机数组
+        let enemies = [];
+        let enemyBullets = [];
+        
+        // 伤害数字数组
+        let damageNumbers = [];
+        
+        // 按键状态（键盘控制）
+        const keys = {};
+        
+        // 触摸状态（移动端控制）
+        let touchState = {
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+            fire: false
+        };
+        
+        // 初始化游戏
+        function init() {
+            gameRunning = true;
+            score = CONFIG.PLAYER.INITIAL_SCORE;
+            health = CONFIG.PLAYER.INITIAL_HEALTH;
+            enemiesDefeated = 0;
+            
+            // 计算玩家初始位置
+            player.x = screenWidth * CONFIG.PLAYER.INITIAL_X_PERCENT - screenBasedParams.playerWidth / 2;
+            player.y = screenHeight * CONFIG.PLAYER.INITIAL_Y_PERCENT;
+            player.width = screenBasedParams.playerWidth;
+            player.height = screenBasedParams.playerHeight;
+            player.currentSpeedX = 0;
+            player.currentSpeedY = 0;
+            
+            player.bullets = [];
+            player.attackStage = 1;
+            player.attackCooldown = 0;
+            player.lastAttackTime = 0;
+            player.lastAttackFrame = 0;
+            player.stage1HitEnemies.clear();
+            player.stage2HitEnemies.clear();
+            
+            enemies = [];
+            enemyBullets = [];
+            damageNumbers = [];
+            
+            // 重置触摸状态
+            touchState = {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                fire: false
+            };
+            
+            // 重置攻击阶段提示
+            stageIndicator.show = false;
+            stageIndicator.frameCount = 0;
+            
+            // 隐藏游戏结束界面
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // 开始游戏循环
+            gameLoop();
+        }
+        
+        // 更新UI
+        function updateUI() {
+            document.getElementById('health').textContent = health;
+            document.getElementById('score').textContent = score;
+            document.getElementById('enemiesDefeated').textContent = enemiesDefeated;
+            // 攻击阶段显示已移除
+        }
+        
+        // 显示攻击阶段提示
+        function showAttackStageIndicator() {
+            let stageText, stageClass;
+            
+            switch(player.attackStage) {
+                case 1:
+                    stageText = "";
+                    stageClass = "stage-1";
+                    break;
+                case 2:
+                    stageText = "";
+                    stageClass = "stage-2";
+                    break;
+                case 3:
+                    stageText = "";
+                    stageClass = "stage-3";
+                    break;
+            }
+            
+            stageIndicator = {
+                show: true,
+                frameCount: CONFIG.ATTACK.STAGE_INDICATOR_DURATION,
+                text: stageText,
+                className: stageClass
+            };
+            
+            const indicator = document.getElementById('attackStageIndicator');
+            indicator.textContent = stageText;
+            indicator.className = stageClass;
+            indicator.style.opacity = '1';
+        }
+        
+        // 更新攻击阶段提示
+        function updateAttackStageIndicator() {
+            if (stageIndicator.show) {
+                stageIndicator.frameCount--;
+                
+                if (stageIndicator.frameCount <= 0) {
+                    stageIndicator.show = false;
+                    document.getElementById('attackStageIndicator').style.opacity = '0';
+                } else if (stageIndicator.frameCount < 10) {
+                    // 渐隐效果
+                    const opacity = stageIndicator.frameCount / 10;
+                    document.getElementById('attackStageIndicator').style.opacity = opacity.toString();
+                }
+            }
+        }
+        
+        // 绘制玩家战机
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            
+            // 绘制战机主体
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width/2, player.y);
+            ctx.lineTo(player.x + player.width, player.y + player.height/3);
+            ctx.lineTo(player.x + player.width, player.y + player.height*2/3);
+            ctx.lineTo(player.x + player.width/2, player.y + player.height);
+            ctx.lineTo(player.x, player.y + player.height*2/3);
+            ctx.lineTo(player.x, player.y + player.height/3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制战机细节
+            ctx.fillStyle = '#8cf';
+            ctx.fillRect(player.x + player.width/2 - player.width*0.2, player.y + player.height*0.25, player.width*0.4, player.height*0.33);
+            
+            // 绘制引擎效果
+            ctx.fillStyle = '#ff4';
+            ctx.fillRect(player.x + player.width/2 - player.width*0.1, player.y + player.height, player.width*0.2, player.height*0.25);
+            
+            // 根据攻击阶段绘制特效
+            if (player.attackCooldown === 0) {
+                let stageColor;
+                switch(player.attackStage) {
+                    case 1:
+                        stageColor = '#f44';
+                        break;
+                    case 2:
+                        stageColor = '#44f';
+                        break;
+                    case 3:
+                        stageColor = '#fff';
+                        break;
+                }
+                
+                // 绘制攻击阶段指示器
+                ctx.fillStyle = stageColor;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y - player.height*0.17, player.width*0.12, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // 检查敌机是否在追踪范围内
+        function isEnemyInTrackingRange(bulletX, bulletY, enemy) {
+            const dx = enemy.x + enemy.width/2 - bulletX;
+            const dy = enemy.y + enemy.height/2 - bulletY;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            const angleToEnemy = Math.atan2(dy, dx);
+            const requiredAngle = -Math.PI/2;
+            
+            const maxDistance = player.height * CONFIG.ATTACK.STAGE_1.TRACKING_RANGE;
+            const maxAngle = (CONFIG.ATTACK.STAGE_1.TRACKING_ANGLE * Math.PI) / 180;
+            
+            return distance <= maxDistance && 
+                   Math.abs(angleToEnemy - requiredAngle) <= maxAngle/2;
+        }
+        
+        // 寻找追踪范围内的最近敌人
+        function findNearestEnemyInRange(bulletX, bulletY) {
+            let nearest = null;
+            let minDistance = Infinity;
+            
+            enemies.forEach(enemy => {
+                if (isEnemyInTrackingRange(bulletX, bulletY, enemy)) {
+                    const dx = enemy.x + enemy.width/2 - bulletX;
+                    const dy = enemy.y + enemy.height/2 - bulletY;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = enemy;
+                    }
+                }
+            });
+            
+            return nearest;
+        }
+        
+        // 创建子弹
+        function createBullet(x, y, type, position, bulletId) {
+            let color, damage, damageType, width, height;
+            
+            switch(type) {
+                case 1:
+                    if (position === 'left') {
+                        color = CONFIG.ATTACK.STAGE_1.LEFT_COLOR;
+                        damage = CONFIG.ATTACK.STAGE_1.DAMAGE;
+                        damageType = 'physical';
+                    } else {
+                        color = CONFIG.ATTACK.STAGE_1.RIGHT_COLOR;
+                        damage = CONFIG.ATTACK.STAGE_1.DAMAGE;
+                        damageType = 'magical';
+                    }
+                    width = CONFIG.ATTACK.STAGE_1.BULLET_SIZE * screenBasedParams.bulletScale;
+                    height = width * 2.5;
+                    break;
+                case 2:
+                    if (position === 'left') {
+                        color = CONFIG.ATTACK.STAGE_2.LEFT_COLOR;
+                        damage = CONFIG.ATTACK.STAGE_2.DAMAGE;
+                        damageType = 'magical';
+                    } else {
+                        color = CONFIG.ATTACK.STAGE_2.RIGHT_COLOR;
+                        damage = CONFIG.ATTACK.STAGE_2.DAMAGE;
+                        damageType = 'physical';
+                    }
+                    width = CONFIG.ATTACK.STAGE_2.BULLET_SIZE * screenBasedParams.bulletScale;
+                    height = width * 2.5;
+                    break;
+                case 3:
+                    color = CONFIG.ATTACK.STAGE_3.COLOR;
+                    damage = CONFIG.ATTACK.STAGE_3.DAMAGE;
+                    damageType = 'true';
+                    width = CONFIG.ATTACK.STAGE_3.BULLET_WIDTH * screenBasedParams.bulletScale;
+                    height = CONFIG.ATTACK.STAGE_3.BULLET_HEIGHT * screenBasedParams.bulletScale;
+                    break;
+            }
+            
+            return {
+                id: bulletId,
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                speed: CONFIG.ATTACK.BULLET_SPEED,
+                color: color,
+                damage: damage,
+                damageType: damageType,
+                type: type,
+                position: position,
+                vx: 0,
+                vy: -1,
+                tracking: type === 1,
+                hasDamagedEnemies: new Set()
+            };
+        }
+        
+        // 子弹ID生成器
+        let bulletIdCounter = 0;
+        let frameCount = 0; // 游戏帧数计数器
+        
+        // 玩家攻击
+        function playerAttack() {
+            if (player.attackCooldown > 0 || player.lastAttackTime > 0) return;
+            
+            // 记录攻击时间
+            player.lastAttackFrame = frameCount;
+            
+            // 清除旧的命中记录
+            if (player.attackStage === 1) {
+                player.stage1HitEnemies.clear();
+            } else if (player.attackStage === 2) {
+                player.stage2HitEnemies.clear();
+            }
+            
+            if (player.attackStage === 1 || player.attackStage === 2) {
+                player.bullets.push(createBullet(
+                    player.x + player.width/2 - player.width*0.3, 
+                    player.y, 
+                    player.attackStage, 
+                    'left',
+                    ++bulletIdCounter
+                ));
+                
+                player.bullets.push(createBullet(
+                    player.x + player.width/2 + player.width*0.14, 
+                    player.y, 
+                    player.attackStage, 
+                    'right',
+                    ++bulletIdCounter
+                ));
+            } else {
+                player.bullets.push(createBullet(
+                    player.x + player.width/2 - player.width*0.12, 
+                    player.y, 
+                    player.attackStage,
+                    'center',
+                    ++bulletIdCounter
+                ));
+            }
+            
+            // 显示攻击阶段提示
+            showAttackStageIndicator();
+            
+            // 更新攻击阶段和冷却时间
+            if (player.attackStage < 3) {
+                player.attackStage++;
+                player.lastAttackTime = player.attackInterval;
+            } else {
+                player.attackStage = 1;
+                player.attackCooldown = player.maxCooldown;
+            }
+        }
+        
+        // 检查是否需要重置攻击阶段
+        function checkAttackStageReset() {
+            // 如果不在冷却中且上次攻击超过2.8秒（168帧），重置到第一段
+            if (player.attackCooldown === 0 && player.lastAttackTime === 0) {
+                const framesSinceLastAttack = frameCount - player.lastAttackFrame;
+                if (framesSinceLastAttack >= CONFIG.ATTACK.RESET_TIMEOUT && player.attackStage !== 1) {
+                    player.attackStage = 1;
+                    // 显示重置提示
+                    stageIndicator = {
+                        show: true,
+                        frameCount: CONFIG.ATTACK.STAGE_INDICATOR_DURATION,
+                        text: "一段攻击",
+                        className: "stage-1"
+                    };
+                    
+                    const indicator = document.getElementById('attackStageIndicator');
+                    indicator.textContent = "一段攻击";
+                    indicator.className = "stage-1";
+                    indicator.style.opacity = '1';
+                }
+            }
+        }
+        
+        // 更新子弹位置
+        function updateBullets() {
+            player.bullets.forEach((bullet, index) => {
+                if (bullet.tracking) {
+                    const nearestEnemy = findNearestEnemyInRange(bullet.x, bullet.y);
+                    if (nearestEnemy) {
+                        const targetX = nearestEnemy.x + nearestEnemy.width/2;
+                        const targetY = nearestEnemy.y + nearestEnemy.height/2;
+                        
+                        const dx = targetX - bullet.x;
+                        const dy = targetY - bullet.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (distance > 0) {
+                            bullet.vx = bullet.vx * 0.7 + (dx / distance) * 0.3;
+                            bullet.vy = bullet.vy * 0.7 + (dy / distance) * 0.3;
+                            
+                            const speed = Math.sqrt(bullet.vx*bullet.vx + bullet.vy*bullet.vy);
+                            bullet.vx = bullet.vx / speed * bullet.speed;
+                            bullet.vy = bullet.vy / speed * bullet.speed;
+                        }
+                    } else {
+                        bullet.vx = 0;
+                        bullet.vy = -bullet.speed;
+                    }
+                } else {
+                    bullet.vx = 0;
+                    bullet.vy = -bullet.speed;
+                }
+                
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                if (bullet.y + bullet.height < 0 || 
+                    bullet.y > screenHeight || 
+                    bullet.x < -bullet.width || 
+                    bullet.x > screenWidth) {
+                    player.bullets.splice(index, 1);
+                }
+            });
+        }
+        
+        // 绘制子弹
+        function drawBullets() {
+            player.bullets.forEach(bullet => {
+                ctx.fillStyle = bullet.color;
+                
+                if (bullet.type === 3) {
+                    ctx.beginPath();
+                    ctx.moveTo(bullet.x + bullet.width/2, bullet.y);
+                    ctx.lineTo(bullet.x + bullet.width, bullet.y + bullet.height/2);
+                    ctx.lineTo(bullet.x + bullet.width/2, bullet.y + bullet.height);
+                    ctx.lineTo(bullet.x, bullet.y + bullet.height/2);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.shadowColor = bullet.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.shadowColor = bullet.color;
+                    ctx.shadowBlur = 5 * screenBasedParams.bulletScale;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+            
+            enemyBullets.forEach((bullet, index) => {
+                ctx.fillStyle = bullet.color;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                bullet.y += bullet.speed;
+                
+                if (bullet.y > screenHeight) {
+                    enemyBullets.splice(index, 1);
+                }
+            });
+        }
+        
+        // 创建敌机
+        function createEnemy() {
+            const x = Math.random() * (screenWidth - screenBasedParams.enemyWidth);
+            
+            const speed = CONFIG.ENEMY.MIN_SPEED + Math.random() * (CONFIG.ENEMY.MAX_SPEED - CONFIG.ENEMY.MIN_SPEED);
+            
+            return {
+                id: Date.now() + Math.random(),
+                x: x,
+                y: CONFIG.ENEMY.MIN_SPAWN_Y,
+                width: screenBasedParams.enemyWidth,
+                height: screenBasedParams.enemyHeight,
+                speed: speed,
+                color: CONFIG.ENEMY.COLOR,
+                health: CONFIG.ENEMY.HEALTH,
+                maxHealth: CONFIG.ENEMY.HEALTH,
+                type: CONFIG.ENEMY.TYPE,
+                damageReceived: 0,
+                lastShot: 0,
+                shotInterval: CONFIG.ENEMY.MIN_SHOT_INTERVAL + Math.random() * (CONFIG.ENEMY.MAX_SHOT_INTERVAL - CONFIG.ENEMY.MIN_SHOT_INTERVAL)
+            };
+        }
+        
+        // 绘制敌机
+        function drawEnemies() {
+            enemies.forEach((enemy, index) => {
+                ctx.fillStyle = enemy.color;
+                ctx.beginPath();
+                ctx.moveTo(enemy.x + enemy.width/2, enemy.y);
+                ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height/2);
+                ctx.lineTo(enemy.x + enemy.width/2, enemy.y + enemy.height);
+                ctx.lineTo(enemy.x, enemy.y + enemy.height/2);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = '#000';
+                ctx.fillRect(enemy.x + enemy.width/2 - enemy.width*0.16, enemy.y + enemy.height/2 - enemy.height*0.08, enemy.width*0.32, enemy.height*0.16);
+                
+                const healthPercent = enemy.health / enemy.maxHealth;
+                ctx.fillStyle = '#333';
+                ctx.fillRect(enemy.x, enemy.y - enemy.height*0.16, enemy.width, enemy.height*0.08);
+                ctx.fillStyle = healthPercent > 0.5 ? '#4a4' : healthPercent > 0.25 ? '#fa0' : '#f44';
+                ctx.fillRect(enemy.x, enemy.y - enemy.height*0.16, enemy.width * healthPercent, enemy.height*0.08);
+                
+                enemy.y += enemy.speed;
+                
+                enemy.lastShot++;
+                if (enemy.lastShot >= enemy.shotInterval) {
+                    enemyBullets.push({
+                        x: enemy.x + enemy.width/2 - CONFIG.ENEMY.BULLET_WIDTH/2 * screenBasedParams.bulletScale,
+                        y: enemy.y + enemy.height,
+                        width: CONFIG.ENEMY.BULLET_WIDTH * screenBasedParams.bulletScale,
+                        height: CONFIG.ENEMY.BULLET_HEIGHT * screenBasedParams.bulletScale,
+                        speed: CONFIG.ENEMY.BULLET_SPEED,
+                        color: CONFIG.ENEMY.BULLET_COLOR
+                    });
+                    enemy.lastShot = 0;
+                }
+                
+                if (enemy.y > screenHeight) {
+                    enemies.splice(index, 1);
+                }
+            });
+        }
+        
+        // 碰撞检测
+        function checkCollisions() {
+            enemies.forEach(enemy => {
+                enemy.damageReceived = 0;
+            });
+            
+            player.bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y) {
+                        
+                        if (bullet.hasDamagedEnemies.has(enemy.id)) {
+                            return;
+                        }
+                        
+                        if (bullet.type === 1 || bullet.type === 2) {
+                            let maxDamage;
+                            if (bullet.type === 1) {
+                                maxDamage = CONFIG.ATTACK.STAGE_1.MAX_DAMAGE_PER_ENEMY;
+                            } else {
+                                maxDamage = CONFIG.ATTACK.STAGE_2.MAX_DAMAGE_PER_ENEMY;
+                            }
+                            
+                            if (enemy.damageReceived >= maxDamage) {
+                                return;
+                            }
+                            
+                            let actualDamage = Math.min(bullet.damage, maxDamage - enemy.damageReceived);
+                            if (actualDamage <= 0) {
+                                return;
+                            }
+                            
+                            enemy.damageReceived += actualDamage;
+                            enemy.health -= actualDamage;
+                            
+                            bullet.hasDamagedEnemies.add(enemy.id);
+                            
+                            showDamageNumber(enemy.x + enemy.width/2, enemy.y, actualDamage, bullet.damageType);
+                        } else {
+                            enemy.health -= bullet.damage;
+                            showDamageNumber(enemy.x + enemy.width/2, enemy.y, bullet.damage, bullet.damageType);
+                            
+                            bullet.hasDamagedEnemies.add(enemy.id);
+                        }
+                        
+                        if (enemy.health <= 0) {
+                            enemies.splice(enemyIndex, 1);
+                            score += CONFIG.DAMAGE.ENEMY_DEFEAT_SCORE;
+                            enemiesDefeated++;
+                            
+                            if (enemy.type === 2) {
+                                score += CONFIG.DAMAGE.SPECIAL_ENEMY_BONUS;
+                            }
+                        }
+                        
+                        if (bullet.type === 3) {
+                            player.bullets.splice(bulletIndex, 1);
+                        }
+                    }
+                });
+            });
+            
+            enemyBullets.forEach((bullet, index) => {
+                if (bullet.x < player.x + player.width &&
+                    bullet.x + bullet.width > player.x &&
+                    bullet.y < player.y + player.height &&
+                    bullet.y + bullet.height > player.y) {
+                    
+                    health -= CONFIG.DAMAGE.ENEMY_BULLET_TO_PLAYER;
+                    enemyBullets.splice(index, 1);
+                    
+                    if (health <= 0) {
+                        health = 0;
+                        gameOver();
+                    }
+                }
+            });
+            
+            enemies.forEach((enemy, index) => {
+                if (enemy.x < player.x + player.width &&
+                    enemy.x + enemy.width > player.x &&
+                    enemy.y < player.y + player.height &&
+                    enemy.y + enemy.height > player.y) {
+                    
+                    health -= CONFIG.DAMAGE.ENEMY_COLLISION_TO_PLAYER;
+                    enemies.splice(index, 1);
+                    
+                    if (health <= 0) {
+                        health = 0;
+                        gameOver();
+                    }
+                }
+            });
+        }
+        
+        // 显示伤害数字
+        function showDamageNumber(x, y, damage, type) {
+            let color;
+            switch(type) {
+                case 'physical':
+                    color = '#f44';
+                    break;
+                case 'magical':
+                    color = '#44f';
+                    break;
+                case 'true':
+                    color = '#fff';
+                    break;
+            }
+            
+            damageNumbers.push({
+                x: x,
+                y: y,
+                value: damage,
+                color: color,
+                life: CONFIG.VISUAL.DAMAGE_NUMBER_LIFETIME,
+                vy: CONFIG.VISUAL.DAMAGE_NUMBER_SPEED
+            });
+        }
+        
+        // 绘制伤害数字
+        function drawDamageNumbers() {
+            damageNumbers.forEach((number, index) => {
+                ctx.fillStyle = number.color;
+                ctx.font = `bold ${18 * screenBasedParams.bulletScale}px Arial`;
+                ctx.textAlign = 'center';
+                
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3 * screenBasedParams.bulletScale;
+                ctx.strokeText(number.value, number.x, number.y);
+                
+                ctx.fillText(number.value, number.x, number.y);
+                
+                number.y += number.vy;
+                number.life--;
+                
+                if (number.life <= 0) {
+                    damageNumbers.splice(index, 1);
+                }
+            });
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+        
+        // 处理玩家移动（带减速效果）
+        function handlePlayerMovement() {
+            const moveLeft = keys['ArrowLeft'] || keys['a'] || keys['A'] || touchState.left;
+            const moveRight = keys['ArrowRight'] || keys['d'] || keys['D'] || touchState.right;
+            const moveUp = keys['ArrowUp'] || keys['w'] || keys['W'] || touchState.up;
+            const moveDown = keys['ArrowDown'] || keys['s'] || keys['S'] || touchState.down;
+            
+            // 应用输入
+            if (moveLeft) {
+                player.currentSpeedX = Math.max(player.currentSpeedX - player.baseSpeed * 0.2, -player.baseSpeed);
+            }
+            if (moveRight) {
+                player.currentSpeedX = Math.min(player.currentSpeedX + player.baseSpeed * 0.2, player.baseSpeed);
+            }
+            if (moveUp) {
+                player.currentSpeedY = Math.max(player.currentSpeedY - player.baseSpeed * 0.2, -player.baseSpeed);
+            }
+            if (moveDown) {
+                player.currentSpeedY = Math.min(player.currentSpeedY + player.baseSpeed * 0.2, player.baseSpeed);
+            }
+            
+            // 应用减速
+            player.currentSpeedX *= CONFIG.PLAYER.MOVE_DECELERATION;
+            player.currentSpeedY *= CONFIG.PLAYER.MOVE_DECELERATION;
+            
+            // 如果速度低于阈值，停止移动
+            if (Math.abs(player.currentSpeedX) < CONFIG.PLAYER.MIN_MOVE_THRESHOLD) {
+                player.currentSpeedX = 0;
+            }
+            if (Math.abs(player.currentSpeedY) < CONFIG.PLAYER.MIN_MOVE_THRESHOLD) {
+                player.currentSpeedY = 0;
+            }
+            
+            // 更新位置
+            player.x += player.currentSpeedX;
+            player.y += player.currentSpeedY;
+            
+            // 边界检查
+            player.x = Math.max(0, Math.min(screenWidth - player.width, player.x));
+            player.y = Math.max(0, Math.min(screenHeight - player.height, player.y));
+        }
+        
+        // 处理攻击
+        function handlePlayerAttack() {
+            const shouldAttack = keys[' '] || keys['j'] || keys['J'] || touchState.fire;
+            if (shouldAttack) {
+                playerAttack();
+            }
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            frameCount++;
+            
+            ctx.clearRect(0, 0, screenWidth, screenHeight);
+            
+            drawStars();
+            
+            if (player.lastAttackTime > 0) {
+                player.lastAttackTime--;
+            }
+            
+            if (player.attackCooldown > 0) {
+                player.attackCooldown--;
+            }
+            
+            // 检查是否需要重置攻击阶段
+            checkAttackStageReset();
+            
+            // 更新攻击阶段提示
+            updateAttackStageIndicator();
+            
+            handlePlayerMovement();
+            handlePlayerAttack();
+            
+            if (Math.random() < CONFIG.ENEMY.SPAWN_RATE * CONFIG.BALANCE.ENEMY_SPAWN_ADJUST) {
+                enemies.push(createEnemy());
+            }
+            
+            updateBullets();
+            
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            drawDamageNumbers();
+            
+            checkCollisions();
+            
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 绘制星空背景
+        function drawStars() {
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < CONFIG.VISUAL.STAR_COUNT; i++) {
+                const x = (i * 17) % screenWidth;
+                const y = (i * 23) % screenHeight;
+                const size = (i % CONFIG.VISUAL.STAR_MAX_SIZE) + 1;
+                ctx.fillRect(x, y, size, size);
+            }
+        }
+        
+        // 移动端触摸控制
+        function setupMobileControls() {
+            const btnUp = document.getElementById('btnUp');
+            const btnLeft = document.getElementById('btnLeft');
+            const btnRight = document.getElementById('btnRight');
+            const btnDown = document.getElementById('btnDown');
+            const fireButton = document.getElementById('fireButton');
+            
+            function handleTouchStart(button, direction) {
+                return function(e) {
+                    e.preventDefault();
+                    touchState[direction] = true;
+                    button.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+                };
+            }
+            
+            function handleTouchEnd(button, direction) {
+                return function(e) {
+                    e.preventDefault();
+                    touchState[direction] = false;
+                    button.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                };
+            }
+            
+            btnUp.addEventListener('touchstart', handleTouchStart(btnUp, 'up'));
+            btnUp.addEventListener('touchend', handleTouchEnd(btnUp, 'up'));
+            btnUp.addEventListener('touchcancel', handleTouchEnd(btnUp, 'up'));
+            
+            btnLeft.addEventListener('touchstart', handleTouchStart(btnLeft, 'left'));
+            btnLeft.addEventListener('touchend', handleTouchEnd(btnLeft, 'left'));
+            btnLeft.addEventListener('touchcancel', handleTouchEnd(btnLeft, 'left'));
+            
+            btnRight.addEventListener('touchstart', handleTouchStart(btnRight, 'right'));
+            btnRight.addEventListener('touchend', handleTouchEnd(btnRight, 'right'));
+            btnRight.addEventListener('touchcancel', handleTouchEnd(btnRight, 'right'));
+            
+            btnDown.addEventListener('touchstart', handleTouchStart(btnDown, 'down'));
+            btnDown.addEventListener('touchend', handleTouchEnd(btnDown, 'down'));
+            btnDown.addEventListener('touchcancel', handleTouchEnd(btnDown, 'down'));
+            
+            fireButton.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                touchState.fire = true;
+                fireButton.style.backgroundColor = 'rgba(255, 100, 100, 0.9)';
+            });
+            
+            fireButton.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                touchState.fire = false;
+                fireButton.style.backgroundColor = 'rgba(255, 68, 68, 0.7)';
+            });
+            
+            fireButton.addEventListener('touchcancel', function(e) {
+                e.preventDefault();
+                touchState.fire = false;
+                fireButton.style.backgroundColor = 'rgba(255, 68, 68, 0.7)';
+            });
+        }
+        
+        // 事件监听
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', init);
+        
+        window.addEventListener('resize', function() {
+            resizeCanvas();
+            player.x = screenWidth * CONFIG.PLAYER.INITIAL_X_PERCENT - screenBasedParams.playerWidth / 2;
+            player.y = screenHeight * CONFIG.PLAYER.INITIAL_Y_PERCENT;
+            player.width = screenBasedParams.playerWidth;
+            player.height = screenBasedParams.playerHeight;
+        });
+        
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // 初始化
+        resizeCanvas();
+        setupMobileControls();
+        init();
+    </script>
+</body>
+</html>
