@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锦云幻月的工具（哔哩哔哩UID:5142023）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #1a1a2e;
+            color: #fff;
+            font-family: -apple-system, arial , sans-serif;
+            padding: 20px;
+        }
+        .page {
+            display: none;
+            min-height: 95vh;
+        }
+        .page.active {
+            display: block;
+        }
+        /*===== 主页 =====*/
+        .header-title {
+            text-align: center;
+            font-size: 26px;
+                        position: fixed;
+            margin: auto;top: 17px;right: 0;left: 0;z-index: 5;
+        }
+        .btn-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 19px;
+        }
+        .btn-today {
+            padding:12px 32px;
+            font-size:20px;
+            border-radius: 999px;width: 170px;
+            border: none;
+            background:#3460b9;
+            color:white;
+            cursor:default;
+                        position: fixed;
+            margin: auto;top: 108px;right: 0;left: 0;z-index: 9;
+        }
+        .countdown-wrap{
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            position: fixed;
+            margin: auto;top: 0;right: 0;left: 0;bottom: 0;z-index: 8;
+        }
+        .countdown {
+            font-size: 88px;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+             font-family: -apple-system, arial , sans-serif;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .countdown.white {
+            color: #ffffff;
+        }
+        .countdown.orange {
+            color: #ff8822;
+        }
+        .countdown.yellow {
+            color: #ffdd00;
+        }
+        .location {
+            font-size: 28px;
+            text-align: center;
+        }
+        .footer-time {
+            font-size: 18px;
+            color: #bbbbbb;
+            text-align:center;
+            padding: 30px 0;            position: fixed;
+            margin: auto;right: 0;left: 0;bottom: 23px;z-index: 7;
+        }
+
+        /*===== 今日课表页面 =====*/
+        .back-btn{
+            font-size: 20px;
+            background:#3460b9;
+            color:white;
+            border:none;
+            border-radius:8px;
+            padding:8px 18px;
+            cursor:default;
+        }
+        .today-container{
+            margin-top: 60px;
+            display:flex;
+            flex-direction:column;
+            gap:16px;
+        }
+        .lesson-pill{
+            width: 100%;
+            background:#2c3e5f;
+            border-radius:999px;
+            display:flex;
+            overflow:hidden;
+        }
+        .time-part{
+            width: 33%;
+            padding:16px 12px;
+            background:#3b5480;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size: 18px;
+        }
+        .loc-part{
+            width:67%;
+            padding:16px 12px;
+            display:flex;
+            align-items:center;
+            font-size:20px;
+        }
+    </style>
+</head>
+<body>
+    <!--倒计时主页-->
+    <div id="pageMain" class="page active">
+        <div class="header-title">25网络3班</div>
+        <div class="btn-wrap">
+            <button class="btn-today" id="openTodayBtn">查看今日</button>
+        </div>
+        <div class="countdown-wrap">
+            <div class="countdown" id="timer">00:00</div>
+            <div class="location" id="locationText"></div>
+        </div>
+        <div class="footer-time" id="footerTime"></div>
+    </div>
+
+    <!--今日课表页面-->
+    <div id="pageToday" class="page">
+        <button class="back-btn" id="backBtn">返回</button>
+        <div class="today-container" id="todayList"></div>
+    </div>
+
+    <script>
+        // ========== 课程基础数据 ==========
+        // 星期 0=周日,1=周一...5=周五,6=周六
+        const baseSchedule = {
+            1: ["人工智能实训室", "实训楼502", "空", "实训楼502", "空"],
+            2: ["实训楼506", "红石榴大厦102", "空", "体育课", "空"],
+            3: ["空", "实训楼506", "网络实训室", "网络实训室", "空"],
+            4: ["空", "空", "人工智能实训室", "人工智能实训室", "空"],
+            5: ["二教106", "实训楼502", "网络实训室", "网络实训室", "空"]
+        };
+        // 节次时间 [开始小时,开始分钟,结束小时,结束分钟]
+        const lessonTimes = [
+            [8, 0, 9, 40],
+            [10, 0, 11, 40],
+            [13, 20, 15, 0],
+            [15, 10, 16, 50],
+            [18, 0, 19, 40]
+        ];
+
+        // 放假无课日期列表
+        const holidayList = [
+            "2026-09-25",
+            "2026-10-01",
+            "2026-10-02",
+            "2026-10-05",
+            "2026-10-06",
+            "2026-10-07",
+            "2027-01-01"
+        ];
+        // 调课：日期 => 星期课表编号(1周一,2周二,3周三,4周四,5周五)
+        const adjustDayMap = {
+            "2026-10-10": 3
+        };
+
+        // 判断是否大于等于指定日期
+        function afterDate(y, m, d, ty, tm, td) {
+            if (y > ty) return true;
+            if (y === ty && m > tm) return true;
+            if (y === ty && m === tm && d >= td) return true;
+            return false;
+        }
+
+        // 格式化日期字符串 YYYY‑MM‑DD
+        function dateStr(dt) {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // 获取当天课表
+        function getScheduleForDay(checkDate) {
+            const ds = dateStr(checkDate);
+            // 判断放假
+            if (holidayList.includes(ds)) return null;
+            // 判断调课
+            if (adjustDayMap[ds]) {
+                const w = adjustDayMap[ds];
+                return JSON.parse(JSON.stringify(baseSchedule[w]));
+            }
+            const wd = checkDate.getDay();
+            // 周六周日默认无课，除了临时课
+            if(wd!==1&&wd!==2&&wd!==3&&wd!==4&&wd!==5){
+                // 2026‑10‑24 周六临时课程
+                if(ds==="2026-10-24"){
+                    return [null, null, "3教201", null, null];
+                }
+                return null;
+            }
+            // 常规工作日
+            let sch = JSON.parse(JSON.stringify(baseSchedule[wd]));
+            const y = checkDate.getFullYear();
+            const m = checkDate.getMonth() + 1;
+            const day = checkDate.getDate();
+
+            // 2026‑11‑01后 周一第5节 →报告厅
+            if (afterDate(y, m, day, 2026, 11, 1)) {
+                sch[4] = "报告厅";
+            }
+            // 2026‑09‑20（含当天）之后周二第2节留空
+            if (afterDate(y, m, day, 2026, 9, 20) && wd===2) {
+                sch[1] = "空";
+            }
+            // 2026‑11‑08后 周三第1节 →红石榴大厦102
+            if (afterDate(y, m, day, 2026, 11, 8) && wd===3) {
+                sch[0] = "红石榴大厦102";
+            }
+            // 2026‑11‑22后 周四第2节 →红石榴大厦104
+            if (afterDate(y, m, day, 2026, 11, 22) && wd===4) {
+                sch[1] = "红石榴大厦104";
+            }
+            return sch;
+        }
+
+        // 获取下一节课信息
+        function getNextLessonInfo(now) {
+            let candidate = null;
+            // 往后最多搜索 60天，总能找到课
+            for (let offsetDay = 0; offsetDay <= 60; offsetDay++) {
+                const checkDate = new Date(now.getTime() + offsetDay * 24 * 60 * 60 * 1000);
+                const daySch = getScheduleForDay(checkDate);
+                if (!daySch) continue;
+                for (let i = 0; i < 5; i++) {
+                    const loc = daySch[i];
+                    if (loc === "空" || loc === null) continue;
+                    const [sh, sm, eh, em] = lessonTimes[i];
+                    const lessonStart = new Date(checkDate);
+                    lessonStart.setHours(sh, sm, 0, 0);
+                    const lessonEnd = new Date(checkDate);
+                    lessonEnd.setHours(eh, em, 0, 0);
+
+                    if (offsetDay === 0) {
+                        // 同一天
+                        if (now >= lessonStart && now < lessonEnd) {
+                            // 正在上课
+                            return { status: "inside", location: loc, endTime: lessonEnd };
+                        }
+                        if (now < lessonStart) {
+                            candidate = { status: "wait", startTime: lessonStart, location: loc };
+                            return candidate;
+                        }
+                    } else {
+                        // 隔天之后的课，直接作为下一节
+                        candidate = { status: "wait", startTime: lessonStart, location: loc };
+                        return candidate;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function padZero(n) {
+            return n.toString().padStart(2, '0');
+        }
+
+        function updateUI() {
+            const now = new Date();
+            const info = getNextLessonInfo(now);
+            const timerEl = document.getElementById("timer");
+            const locEl = document.getElementById("locationText");
+            const footerEl = document.getElementById("footerTime");
+
+            // 更新底部时间
+            const y = now.getFullYear();
+            const m = now.getMonth() + 1;
+            const d = now.getDate();
+            const h = padZero(now.getHours());
+            const mi = padZero(now.getMinutes());
+            footerEl.innerText = `${y}年${m}月${d}日 ${h}:${mi}`;
+
+            if (!info) {
+                timerEl.innerText = "--:--";
+                locEl.innerText = "暂无课程";
+                return;
+            }
+
+            if (info.status === "inside") {
+                timerEl.innerText = "上课中";
+                timerEl.className = "countdown yellow";
+                locEl.innerText = info.location;
+            } else {
+                const diffMs = info.startTime - now;
+                const totalSec = Math.floor(diffMs / 1000);
+                const mins = Math.floor(totalSec / 60);
+                const secs = totalSec % 60;
+                timerEl.innerText = `${padZero(mins)}:${padZero(secs)}`;
+                // < 4分钟橙色
+                if (totalSec <= 4 * 60) {
+                    timerEl.className = "countdown orange";
+                } else {
+                    timerEl.className = "countdown white";
+                }
+                locEl.innerText = info.location;
+            }
+        }
+
+        //渲染今日课表页面
+        function renderTodayList(){
+            const today=new Date();
+            const sch=getScheduleForDay(today);
+            const container=document.getElementById("todayList");
+            container.innerHTML="";
+            for(let i=0;i<5;i++){
+                const [sh,sm,eh,em]=lessonTimes[i];
+                const timeText=`${padZero(sh)}:${padZero(sm)}~${padZero(eh)}:${padZero(em)}`;
+                let locText;
+                if(!sch){
+                    locText="今日无课";
+                }else{
+                    locText=sch[i];
+                }
+                const pill=document.createElement("div");
+                pill.className="lesson-pill";
+                pill.innerHTML=
+                `<div class="time-part">${timeText}</div>
+                <div class="loc-part">${locText}</div>`;
+                container.appendChild(pill);
+            }
+        }
+
+        //页面切换
+        document.getElementById("openTodayBtn").onclick=()=>{
+            document.getElementById("pageMain").classList.remove("active");
+            document.getElementById("pageToday").classList.add("active");
+            renderTodayList();
+        };
+        document.getElementById("backBtn").onclick=()=>{
+            document.getElementById("pageToday").classList.remove("active");
+            document.getElementById("pageMain").classList.add("active");
+        };
+
+        // 500ms刷新一次
+        updateUI();
+        setInterval(updateUI, 500);
+    </script>
+</body>
+</html>
