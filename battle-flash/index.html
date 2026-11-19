@@ -15,7 +15,7 @@
     user-select: none;
   }
 
-  /* b */
+  /* 背景光影 */
   .bg {
     position: fixed; inset: 0;
     overflow: hidden;
@@ -56,10 +56,10 @@
     pointer-events: none;transform-style: preserve-3d;will-change: transform;-webkit-font-smoothing: antialiased;
   }
 
-  /* 37 */
+  /* 主容器 */
   .game { position: relative; width: 100%; height: 100%; z-index: 2; }
 
-  /* 73 */
+  /* 玩家座位 */
   .seat {
     position: absolute;
     display: flex; flex-direction: column; align-items: center;
@@ -347,8 +347,8 @@
   }
   @keyframes floatUp {
     0%   { opacity: 0; transform: translate(-50%, 30px); }
-    60%  { opacity: 1; transform: translate(-50%, -8px); }
-    100% { opacity: 0; transform: translate(-50%, -8px); }
+    60%  { opacity: 1; transform: translate(-50%, -11px); }
+    100% { opacity: 0; transform: translate(-50%, -11px); }
   }
 
   /* 飞牌克隆 */
@@ -438,8 +438,8 @@
     border: 1px solid rgba(255,255,255,.4);
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(90,60,200,.85), rgba(190,50,140,.85));
-    color: #fff; font-size: 20px; font-weight: 800; letter-spacing: 3px;
-    font-family: Microsoft YaHei, Arial;
+    color: #fff; font-size: 20px; font-weight: 800;
+    font-family: Microsoft YaHei;
     cursor: pointer;
     box-shadow: 0 0 16px rgba(140,80,255,.6);
     transition: transform .2s, box-shadow .2s;
@@ -782,6 +782,85 @@
     will-change: transform;
   }
 
+  /* SECTION: round-settlement 圆圈结算 */
+  .round-circles {
+    display: flex; justify-content: center; align-items: flex-start;
+    flex-wrap: wrap; gap: 16px;
+    margin: 16px 0 4px;
+  }
+  .rc { display: flex; flex-direction: column; align-items: center; width: 128px; }
+  .rc-lead {
+    height: 28px; line-height: 28px;
+    font-size: 17px;
+    color: #ffd24d;
+    text-shadow: 0 0 10px rgba(255,210,77,.9), 0 2px 4px #000;
+    opacity: 0;
+    white-space: nowrap;
+font-weight: 900;
+  }
+  .rc-lead.show { opacity: 1; animation: leadPulse 1.4s ease-in-out infinite; }
+  @keyframes leadPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.12); }
+  }
+  .rc-ring { position: relative; width: 124px; height: 124px; }
+  .rc-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .rc-bg { fill: rgba(20,10,45,.85); stroke: rgba(160,120,255,.25); stroke-width: 8; }
+  .rc-fg {
+    fill: none;
+    stroke: #00e5ff;
+    stroke-width: 8;
+    stroke-linecap: round;
+    
+    transition: stroke-dashoffset 1s cubic-bezier(.25,.8,.35,1);
+  }
+  .rc-inner {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px;
+  }
+  .rc-name { font-size: 20px; color: #cbb8ff; font-weight: 800;}
+  .rc-score {
+    font-size: 34px;color: #7ef9ff;
+    text-shadow: 0 0 10px rgba(126,249,255,.6);
+    font-feature-settings: "tnum";
+  }
+  .rc-gain { margin-top: 8px; font-size: 22px; color: #ffb44d;font-family:Microsoft YaHei; }
+
+  /* SECTION: final-settlement 最终结算 */
+  .final-winner {
+    margin: 12px 0 20px;
+    font-size: 44px; font-weight: 900; letter-spacing: 6px;
+    color: #ffd24d;
+    text-shadow: 0 0 18px rgba(255,210,77,.9), 0 0 44px rgba(255,45,107,.55), 0 2px 6px #000;
+    animation: winnerPop .5s cubic-bezier(.2,1.4,.45,1) both;
+  }
+  @keyframes winnerPop {
+    from { opacity: 0; transform: scale(.5); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .rank-list {
+    display: flex; flex-direction: column; gap: 8px;
+    max-width: 440px; margin: 0 auto;
+  }
+  .rank-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 18px;
+    border-radius: 14px;
+    background: rgba(30,18,60,.75);
+    border: 1px solid rgba(140,110,255,.3);
+    font-size: 22px; color: #cbb8ff;
+  }
+  .rank-row .rk { width: 76px; font-weight: 800; color: #9ff6ff; letter-spacing: 1px; }
+  .rank-row .rn { font-weight: 900; color: #fff; letter-spacing: 2px; }
+  .rank-row .rv { margin-left: auto; color: #ffb44d; font-weight: 800; }
+  .rank-row.champ {
+    border-color: rgba(255,210,77,.85);
+    background: linear-gradient(135deg, rgba(95,62,18,.9), rgba(58,28,110,.9));
+    box-shadow: 0 0 18px rgba(255,210,77,.45);
+  }
+  .rank-row.champ .rk { color: #ffd24d; }
+
   /* 小屏适配 */
   @media (max-height: 860px) {
     .card { width: 72px; height: 100px; }
@@ -898,7 +977,7 @@
       <ul>
         <li>使用一副 <b>52 张</b>扑克牌（去除大小王），四人各发13 张。</li>
         <li>红桃与黑桃Q 为 <span class="hl">分牌</span>，分数越低越好；<span class="gold">总分最低者获胜</span>。</li>
-        <li>任一玩家总分达到 <b>100 分</b> 时整局结束。</li>
+        <li>任一玩家总分达到 <b>100 分</b> 时整局结束；若此时有两人及以上并列第一（总分最低），则继续 <span class="gold">加时局</span>，直至出现唯一第一。</li>
       </ul>
       <h2>计分</h2>
       <ul>
@@ -992,7 +1071,8 @@ const state = {
   special: [false, false, false, false],
   phase: 'idle',
   waitingHuman: false,
-  starter: 0
+  starter: 0,
+  roundNumber: 0
 };
 
 // 发牌显示状态
@@ -1766,6 +1846,7 @@ function finishDealing() {
 
 // 游戏流程
 function newRound() {
+  state.roundNumber++;
   const deck = [];
   for (const s of ['S', 'H', 'D', 'C']) {
     for (let r = 2; r <= 14; r++) {
@@ -1946,6 +2027,47 @@ function resolveTrick() {
   }, 800);
 }
 
+function buildRoundCircles() {
+  const minScore = Math.min(...state.scores);
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  let html = '<div class="round-circles">';
+  for (let i = 0; i < 4; i++) {
+    const sc = state.scores[i];
+    const pct = Math.max(0, Math.min(1, sc / 100));
+    const lead = sc === minScore;
+    html +=
+      '<div class="rc">' +
+        '<div class="rc-lead' + (lead ? ' show' : '') + '">暂时领先</div>' +
+        '<div class="rc-ring">' +
+          '<svg width="124" height="124" viewBox="0 0 124 124">' +
+            '<circle class="rc-bg" cx="62" cy="62" r="' + R + '"></circle>' +
+            '<circle class="rc-fg" cx="62" cy="62" r="' + R + '"' +
+              ' stroke-dasharray="' + C.toFixed(1) + '"' +
+              ' stroke-dashoffset="' + C.toFixed(1) + '"' +
+              ' data-target="' + (C * (1 - pct)).toFixed(1) + '"></circle>' +
+          '</svg>' +
+          '<div class="rc-inner">' +
+            '<div class="rc-name">' + PLAYERS[i].name + '</div>' +
+            '<div class="rc-score">' + sc + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rc-gain">+' + state.roundScores[i] + '</div>' +
+      '</div>';
+  }
+  return html + '</div>';
+}
+
+function animateRings() {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.rc-fg').forEach(el => {
+        el.style.strokeDashoffset = el.dataset.target;
+      });
+    });
+  });
+}
+
 function endRound() {
   const shooter = state.roundScores.findIndex(s => s === 26);
 
@@ -1965,12 +2087,6 @@ function endRound() {
   state.phase = 'roundEnd';
   renderScores();
 
-  let lines = '';
-  for (let i = 0; i < 4; i++) {
-    lines += PLAYERS[i].name + '：本局 +' + state.roundScores[i] +
-             ' ｜ 总分 ' + state.scores[i] + '<br>';
-  }
-
   let extra = '';
   if (shooter >= 0) {
     extra = '<div class="detail" style="color:#ffd24d;">&#127769; ' + PLAYERS[shooter].name +
@@ -1978,45 +2094,70 @@ function endRound() {
   }
 
   const maxScore = Math.max(...state.scores);
+  const minScore = Math.min(...state.scores);
+  const tiedCount = state.scores.filter(s => s === minScore).length;
 
-  if (maxScore >= 100) {
+  // 有人达到或超过 100 分，且第一名（总分最低者）唯一 -> 游戏结束
+  if (maxScore >= 100 && tiedCount === 1) {
     state.phase = 'over';
 
-    const minScore = Math.min(...state.scores);
-    const winners = PLAYERS
-      .filter((_, i) => state.scores[i] === minScore)
-      .map(p => p.name);
+    const winIdx = state.scores.indexOf(minScore);
 
-    const winText = winners.length > 1
-      ? winners.join('、') + ' 并列获胜！'
-      : winners[0] + ' 获胜！';
+    // 按总分从低到高排名次（分数越低越好），同分并列同名次
+    const order = PLAYERS
+      .map((p, i) => ({ name: p.name, score: state.scores[i] }))
+      .sort((a, b) => a.score - b.score);
+    let ranks = '';
+    let lastScore = null, lastRank = 0;
+    order.forEach((o, idx) => {
+      const rank = (o.score === lastScore) ? lastRank : idx + 1;
+      lastScore = o.score;
+      lastRank = rank;
+      ranks +=
+        '<div class="rank-row' + (rank === 1 ? ' champ' : '') + '">' +
+          '<span class="rk">第' + rank + '名</span>' +
+          '<span class="rn">' + o.name + '</span>' +
+          '<span class="rv">' + o.score + ' 分</span>' +
+        '</div>';
+    });
 
     showOverlay(
       '<h1>游戏结束</h1>' +
-      '<p style="color:#7ef9ff;">&#127942; ' + winText + '</p>' +
-      '<div class="detail">' + lines + '</div>' +
-      '<button class="btn" id="againBtn">确认</button>'
+      '<div class="final-winner">&#127942; ' + PLAYERS[winIdx].name + ' 获胜</div>' +
+      '<div class="rank-list">' + ranks + '</div>' +
+      extra +
+      '<button class="btn" id="againBtn">再来一局</button>'
     );
 
     document.getElementById('againBtn').onclick = () => {
       state.scores = [0, 0, 0, 0];
+      state.roundNumber = 0;
       hideOverlay();
       newRound();
     };
     return;
   }
 
+  // 普通结算（含"到 100 分但并列第一需加时"的情况）
+  let overtime = '';
+  if (maxScore >= 100 && tiedCount > 1) {
+    overtime = '<div class="detail" style="color:#ff8aa8;">已有玩家达到 100 分，但 ' +
+               tiedCount + ' 人并列第一，进入加时局！</div>';
+  }
+
   showOverlay(
-    '<h1>本局结束</h1>' +
-    '<div class="detail">' + lines + '</div>' +
+    '<h1>第' + state.roundNumber + '局结束</h1>' +
+    buildRoundCircles() +
     extra +
-    '<button class="btn" id="nextBtn">下一局</button>'
+    overtime +
+    '<button class="btn" id="nextBtn">' + (overtime ? '继续加时' : '下一局') + '</button>'
   );
 
   document.getElementById('nextBtn').onclick = () => {
     hideOverlay();
     newRound();
   };
+  animateRings();
 }
 
 function showOverlay(html) {
@@ -2033,6 +2174,7 @@ function hideOverlay() {
 document.getElementById('startBtn').onclick = () => {
   hideOverlay();
   state.scores = [0, 0, 0, 0];
+  state.roundNumber = 0;
   newRound();
 };
 
